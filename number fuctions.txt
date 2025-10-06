@@ -1,0 +1,40 @@
+-- Number Functions
+CREATE TABLE tab1(data NUMBER(7,2));
+
+INSERT INTO tab1 VALUES(&data);
+INSERT INTO tab1 VALUES(&data);
+INSERT INTO tab1 VALUES(&data);
+
+-- Example values: 10, 20, 30
+
+SELECT AVG(data) FROM tab1;
+SELECT MAX(data) FROM tab1;
+SELECT MOD(25,4) FROM dual;
+
+
+-- Date Functions
+SELECT SYSDATE FROM dual;
+SELECT ADD_MONTHS(SYSDATE,2) FROM dual;
+SELECT LAST_DAY(SYSDATE) FROM dual;
+
+
+-- Count Functions
+CREATE TABLE emp(
+  empno NUMBER,
+  empname VARCHAR2(20),
+  deptcode VARCHAR2(10)
+);
+
+INSERT INTO emp VALUES(101,'Rama','CS01');
+INSERT INTO emp VALUES(102,'Geetha','CS02');
+INSERT INTO emp VALUES(103,'Bala','CS01');
+
+SELECT COUNT(*) FROM emp;
+SELECT COUNT(DISTINCT deptcode) FROM emp;
+SELECT COUNT(empname) FROM emp;
+
+
+-- Character Functions
+SELECT INITCAP('hello world') FROM dual;
+SELECT UPPER('sql') FROM dual;
+SELECT SUBSTR('database',5,4) FROM dual;
