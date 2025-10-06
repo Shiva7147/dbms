@@ -1,0 +1,43 @@
+-- (i) Create tables
+CREATE TABLE BRANCH1(ifsc VARCHAR2(10) PRIMARY KEY, branch_name VARCHAR2(30), branch_city VARCHAR2(30), assets NUMBER(12,2));
+
+CREATE TABLE ACCOUNT1(accno NUMBER PRIMARY KEY, branch_name VARCHAR2(30), balance NUMBER(10,2), FOREIGN KEY(branch_name) REFERENCES BRANCH1(branch_name));
+
+CREATE TABLE DEPOSITOR1(accno NUMBER, customer_name VARCHAR2(30), FOREIGN KEY(accno) REFERENCES ACCOUNT1(accno));
+
+CREATE TABLE CUSTOMER1(accno NUMBER, customer_name VARCHAR2(30), customer_street VARCHAR2(30), customer_city VARCHAR2(30), FOREIGN KEY(accno) REFERENCES ACCOUNT1(accno));
+
+CREATE TABLE LOAN1(loan_no NUMBER PRIMARY KEY, branch_name VARCHAR2(30), amount NUMBER(10,2), FOREIGN KEY(branch_name) REFERENCES BRANCH1(branch_name));
+
+CREATE TABLE BORROWER1(loan_no NUMBER, customer_name VARCHAR2(30), FOREIGN KEY(loan_no) REFERENCES LOAN1(loan_no));
+
+-- (ii) Parameterized insertion
+INSERT INTO BRANCH1 VALUES('&ifsc', '&branch_name', '&branch_city', &assets);
+INSERT INTO ACCOUNT1 VALUES(&accno, '&branch_name', &balance);
+INSERT INTO DEPOSITOR1 VALUES(&accno, '&customer_name');
+INSERT INTO CUSTOMER1 VALUES(&accno, '&customer_name', '&customer_street', '&customer_city');
+INSERT INTO LOAN1 VALUES(&loan_no, '&branch_name', &amount);
+INSERT INTO BORROWER1 VALUES(&loan_no, '&customer_name');
+
+-- (iii) Customers with at least two accounts at the main branch
+SELECT D.customer_name
+FROM DEPOSITOR1 D
+JOIN ACCOUNT1 A ON D.accno = A.accno
+WHERE A.branch_name = 'Main Branch'
+GROUP BY D.customer_name
+HAVING COUNT(D.accno) >= 2;
+
+-- (iv) Customers with accounts at all branches in a specific city
+SELECT DISTINCT D.customer_name
+FROM DEPOSITOR1 D
+WHERE NOT EXISTS (
+  SELECT B.branch_name FROM BRANCH1 B
+  WHERE B.branch_city = 'Chennai'
+  MINUS
+  SELECT A.branch_name FROM ACCOUNT1 A
+  WHERE A.accno IN (SELECT accno FROM DEPOSITOR1 WHERE customer_name = D.customer_name)
+);
+
+-- (v) Delete all account tuples at every branch located in a specific city
+DELETE FROM ACCOUNT1
+WHERE branch_name IN (SELECT branch_name FROM BRANCH1 WHERE branch_city = 'Chennai');
