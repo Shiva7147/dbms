@@ -1,0 +1,65 @@
+-- CREATE PACKAGE
+CREATE OR REPLACE PACKAGE mypkg AS
+    -- Procedure to find area and circumference
+    PROCEDURE area_circ_of_circle(radius IN NUMBER, area OUT NUMBER, circumference OUT NUMBER);
+
+    -- Recursive function to find GCD
+    FUNCTION gcd(num1 NUMBER, num2 NUMBER) RETURN NUMBER;
+END mypkg;
+/
+-- PACKAGE BODY
+CREATE OR REPLACE PACKAGE BODY mypkg AS
+
+    PROCEDURE area_circ_of_circle(radius IN NUMBER, area OUT NUMBER, circumference OUT NUMBER) IS
+        pi CONSTANT NUMBER := 3.141;
+    BEGIN
+        area := pi * radius * radius;
+        circumference := 2 * pi * radius;
+    END area_circ_of_circle;
+
+    FUNCTION gcd(num1 NUMBER, num2 NUMBER) RETURN NUMBER IS
+    BEGIN
+        IF num2 = 0 THEN
+            RETURN num1;
+        ELSE
+            RETURN gcd(num2, MOD(num1, num2));
+        END IF;
+    END gcd;
+
+END mypkg;
+/
+-- MAIN PROGRAM
+SET SERVEROUTPUT ON;
+
+DECLARE
+    radius NUMBER;
+    area NUMBER;
+    circumference NUMBER;
+    num1 NUMBER;
+    num2 NUMBER;
+    choice NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('------ MENU ------');
+    DBMS_OUTPUT.PUT_LINE('1. Area & Circumference of Circle');
+    DBMS_OUTPUT.PUT_LINE('2. GCD of Two Numbers');
+    DBMS_OUTPUT.PUT_LINE('3. Exit');
+
+    choice := &choice;
+    DBMS_OUTPUT.PUT_LINE('Your choice: ' || choice);
+
+    IF choice = 1 THEN
+        radius := &radius;
+        mypkg.area_circ_of_circle(radius, area, circumference);
+        DBMS_OUTPUT.PUT_LINE('Area = ' || area);
+        DBMS_OUTPUT.PUT_LINE('Circumference = ' || circumference);
+
+    ELSIF choice = 2 THEN
+        num1 := &num1;
+        num2 := &num2;
+        DBMS_OUTPUT.PUT_LINE('GCD = ' || mypkg.gcd(num1, num2));
+
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('THANK YOU');
+    END IF;
+END;
+/

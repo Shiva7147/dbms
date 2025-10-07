@@ -1,0 +1,40 @@
+SET SERVEROUTPUT ON;
+
+DECLARE
+    n NUMBER;
+    ch NUMBER;
+    fact NUMBER := 1;
+    a NUMBER := 0;
+    b NUMBER := 1;
+    temp NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('------ MENU ------');
+    DBMS_OUTPUT.PUT_LINE('1. Factorial');
+    DBMS_OUTPUT.PUT_LINE('2. Fibonacci Series');
+    DBMS_OUTPUT.PUT_LINE('3. Exit');
+
+    ch := &ch;  -- user enters choice
+
+    IF ch = 1 THEN
+        n := &n;
+        fact := 1;
+        FOR i IN 1..n LOOP
+            fact := fact * i;
+        END LOOP;
+        DBMS_OUTPUT.PUT_LINE('Factorial of ' || n || ' = ' || fact);
+
+    ELSIF ch = 2 THEN
+        n := &n;
+        DBMS_OUTPUT.PUT_LINE('Fibonacci Series up to ' || n || ' terms:');
+        FOR i IN 1..n LOOP
+            DBMS_OUTPUT.PUT(a || ' ');
+            temp := a + b;
+            a := b;
+            b := temp;
+        END LOOP;
+
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Thank You!');
+    END IF;
+END;
+/
