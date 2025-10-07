@@ -1,0 +1,36 @@
+-- 1. CREATE TABLES
+CREATE TABLE CUSTOMER1 (custno INT PRIMARY KEY, cname VARCHAR(50), city VARCHAR(50));
+CREATE TABLE ORDER1 (orderno INT PRIMARY KEY, odate DATE, ordamt REAL, custno INT REFERENCES CUSTOMER1(custno));
+CREATE TABLE ITEM1 (itemno INT PRIMARY KEY, unitprice REAL);
+CREATE TABLE ORDER_ITEM1 (orderno INT REFERENCES ORDER1(orderno), itemno INT REFERENCES ITEM1(itemno), qty INT, PRIMARY KEY(orderno,itemno));
+CREATE TABLE WAREHOUSE1 (warehouseno INT PRIMARY KEY, city VARCHAR(50));
+CREATE TABLE SHIPMENT1 (orderno INT REFERENCES ORDER1(orderno), warehouseno INT REFERENCES WAREHOUSE1(warehouseno), shipdate DATE, PRIMARY KEY(orderno,warehouseno));
+
+-- 2. PARAMETERIZED INSERTIONS (repeat with /)
+INSERT INTO CUSTOMER1 VALUES(&custno,'&cname','&city');
+/
+INSERT INTO ORDER1 VALUES(&orderno,TO_DATE('&odate','DD-MM-YYYY'),&ordamt,&custno);
+/
+INSERT INTO ITEM1 VALUES(&itemno,&unitprice);
+/
+INSERT INTO ORDER_ITEM1 VALUES(&orderno,&itemno,&qty);
+/
+INSERT INTO WAREHOUSE1 VALUES(&warehouseno,'&city');
+/
+INSERT INTO SHIPMENT1 VALUES(&orderno,&warehouseno,TO_DATE('&shipdate','DD-MM-YYYY'));
+/
+
+-- 3. LIST ORDERS SHIPPED FROM A PARTICULAR WAREHOUSE
+SELECT ordno, shipdate FROM SHIPMENT1 WHERE warehouseno=&warehouseno;
+
+-- 4. CUSTOMER DETAILS: NAME, NUMBER OF ORDERS, AVG ORDER AMOUNT
+SELECT C.custno, C.cname, COUNT(O.orderno) AS total_orders, AVG(O.ordamt) AS avg_order_amt
+FROM CUSTOMER1 C
+JOIN ORDER1 O ON C.custno=O.custno
+GROUP BY C.custno, C.cname;
+
+-- 5. ORDERS NOT SHIPPED WITHIN 30 DAYS
+SELECT O.orderno, O.odate, S.shipdate
+FROM ORDER1 O
+JOIN SHIPMENT1 S ON O.orderno=S.orderno
+WHERE S.shipdate > O.odate + 30;
