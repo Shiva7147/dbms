@@ -1,0 +1,74 @@
+-- STEP 1: CREATE TABLES
+CREATE TABLE salesmen (
+    smno VARCHAR2(6) PRIMARY KEY,
+    name VARCHAR2(50),
+    act_sales_amt NUMBER(10,2),
+    tgt_sales_amt NUMBER(10,2)
+);
+
+CREATE TABLE salescommission (
+    smno VARCHAR2(6),
+    name VARCHAR2(50),
+    dos DATE,
+    comm NUMBER(10,2)
+);
+
+-- STEP 2: DROP OLD TRIGGERS IF EXIST
+DROP TRIGGER salesmen_trig;
+DROP TRIGGER salesmen_trig_del;
+/
+
+-- STEP 3: TRIGGER FOR INSERT / UPDATE
+CREATE OR REPLACE TRIGGER salesmen_trig
+BEFORE INSERT OR UPDATE ON salesmen
+FOR EACH ROW
+WHEN (NEW.act_sales_amt > NEW.tgt_sales_amt)
+DECLARE
+    comm NUMBER(10,2);
+BEGIN
+    -- Commission logic based on sales amount
+    IF :NEW.act_sales_amt > 25000 THEN
+        comm := :NEW.act_sales_amt * 0.35;
+    ELSIF :NEW.act_sales_amt > 20000 THEN
+        comm := :NEW.act_sales_amt * 0.25;
+    ELSIF :NEW.act_sales_amt > 15000 THEN
+        comm := :NEW.act_sales_amt * 0.15;
+    ELSIF :NEW.act_sales_amt > 10000 THEN
+        comm := :NEW.act_sales_amt * 0.10;
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Sales too low for commission');
+        RETURN;
+    END IF;
+
+    -- Insert or update commission table
+    DELETE FROM salescommission WHERE smno = :NEW.smno;
+    INSERT INTO salescommission VALUES (:NEW.smno, :NEW.name, SYSDATE, comm);
+
+    DBMS_OUTPUT.PUT_LINE('Commission added/updated for salesman ' || :NEW.name);
+END;
+/
+-- STEP 4: TRIGGER FOR DELETE
+CREATE OR REPLACE TRIGGER salesmen_trig_del
+AFTER DELETE ON salesmen
+FOR EACH ROW
+BEGIN
+    DELETE FROM salescommission WHERE smno = :OLD.smno;
+    DBMS_OUTPUT.PUT_LINE('Commission deleted for salesman no: ' || :OLD.smno);
+END;
+/
+-- STEP 5: TESTING COMMANDS
+-- Insert record
+INSERT INTO salesmen VALUES('&smno','&name',&act_sales_amt,&tgt_sales_amt);
+/
+
+-- View data
+SELECT * FROM salesmen;
+SELECT * FROM salescommission;
+
+-- Update record
+UPDATE salesmen SET act_sales_amt = 19000, tgt_sales_amt = 10000 WHERE smno = 'SM01';
+/
+
+-- Delete record
+DELETE FROM salesmen WHERE smno = 'SM02';
+/
